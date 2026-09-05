@@ -7,6 +7,7 @@
 A small, local-first app for language tutors. During a lesson you log what the student said, the correction, and a tag for the error type. Over time the app ranks each student's recurring errors and tells you which ones are persistent, which are improving, and which are new. Sign in, and the same data follows you to a second device.
 
 **How it all works, in plain language:** [docs/architecture.md](docs/architecture.md)
+**How I made sure I understand it:** [docs/study-guide.md](docs/study-guide.md). I built this with an AI assistant as a pair programmer; the study guide is the vocabulary, the decisions with their alternatives, and the questions the project invites, written so I can defend every part of it.
 
 ![Screenshot of Lesson Error Tracker showing a student's error log and ranked error patterns](docs/screenshot.png)
 
