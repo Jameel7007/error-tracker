@@ -4,7 +4,9 @@
 
 **Live demo:** https://jameel7007.github.io/error-tracker/
 
-A small, local-first app for language tutors. During a lesson you log what the student said, the correction, and a tag for the error type. Over time the app ranks each student's recurring errors and tells you which ones are persistent, which are improving, and which are new.
+A small, local-first app for language tutors. During a lesson you log what the student said, the correction, and a tag for the error type. Over time the app ranks each student's recurring errors and tells you which ones are persistent, which are improving, and which are new. Sign in, and the same data follows you to a second device.
+
+**How it all works, in plain language:** [docs/architecture.md](docs/architecture.md)
 
 ![Screenshot of Lesson Error Tracker showing a student's error log and ranked error patterns](docs/screenshot.png)
 
@@ -22,11 +24,14 @@ I teach English online, about twenty one-to-one students a week. The most useful
 - **Copy summary** on each lesson: plain-text notes listing that lesson's corrections in order, plus any tag that has come up in earlier lessons, ready to paste into the student's homework message
 - Export and import as JSON, with validation on import so a bad file cannot corrupt your data
 - Everything is stored in `localStorage`; changes sync across open tabs
+- **Optional sync between devices.** Create an account and every change is pushed to a small server a moment after you make it, and pulled onto your other devices. Works offline and catches up when you are back. Without an account the app is exactly as local-only as before
 - Responsive layout, keyboard accessible, light and dark themes
 
 ## Stack
 
 Vite, React 19, TypeScript. No UI library, no state library. Vitest with Testing Library for tests. GitHub Actions runs typecheck, tests, and build on every push and deploys `main` to GitHub Pages.
+
+The sync server (`server/`) is Hono on Node with Node's built-in SQLite, in an npm workspace. No ORM, no native modules, no build step. It shares its record and wire types with the app, so the two cannot drift apart. See [server/README.md](server/README.md) for the API and deployment.
 
 ## Design notes
 
@@ -36,6 +41,8 @@ Vite, React 19, TypeScript. No UI library, no state library. Vitest with Testing
 
 **The lesson summary only looks backwards.** When it decides which of a lesson's tags are "still coming up", it counts lessons up to and including that date, not later ones. A summary for an old lesson should read the way it would have on the day. The first version got this wrong and a test caught it.
 
+**Sync is last-write-wins per record, with tombstones.** Every record carries `updatedAt`, deletions leave a tombstone, and the newer timestamp wins on both the client and the server. One `POST /sync` pushes and pulls in a single round trip using a per-account sequence cursor. The merge is a pure function with tests for both conflict directions, idempotency, and convergence regardless of arrival order. The known limit is client clocks: a device with a fast clock wins for as long as it is fast. For one tutor with two devices that is the right trade against the complexity of vector clocks. [docs/architecture.md](docs/architecture.md) walks through it with examples.
+
 **Import validates against a schema by hand** rather than pulling in a validation library. The data shape is small, and a hand-written guard keeps the bundle at ~65 kB gzipped and gives clear error messages ("Error refers to unknown student").
 
 **Tags are free text, normalised for grouping.** Forcing a fixed taxonomy up front would have made the app slower to use in a lesson. Normalising case and whitespace catches most of the drift; the autocomplete does the rest.
@@ -44,18 +51,26 @@ Vite, React 19, TypeScript. No UI library, no state library. Vitest with Testing
 
 ```bash
 npm install
-npm run dev        # local server
-npm test           # run tests once
-npm run test:watch
-npm run typecheck
+npm run dev        # app on http://localhost:5173/error-tracker/
+npm test           # app tests
+npm run test:server
+npm run typecheck  # app and server
 npm run build      # outputs to dist/
+```
+
+To try sync locally, run the server and point the app at it:
+
+```bash
+npm run dev --workspace server                 # http://localhost:8787
+echo 'VITE_SYNC_URL=http://localhost:8787' > .env.local
+npm run dev
 ```
 
 Deployment happens automatically from `main` via GitHub Actions. To publish Pages the first time, set the repository's Pages source to **GitHub Actions** in Settings.
 
 ## Roadmap
 
-Things I would add if this grew past a weekend project: optional sync via a small backend so the same data is available on a tablet during lessons, and spaced-repetition prompts generated from persistent tags.
+Things I would add if this grew past a weekend project: per-field merging so two offline edits to the same error do not lose one of them, pruning of old tombstones, and spaced-repetition prompts generated from persistent tags.
 
 ## License
 
