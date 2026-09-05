@@ -11,15 +11,10 @@ import { emptyData, LEVELS, type Level } from './lib/types'
 
 export default function App() {
   const [data, dispatch] = useAppData(seedData)
-  const [selectedId, setSelectedId] = useState<string | null>(() => data.students[0]?.id ?? null)
+  const [requestedId, setSelectedId] = useState<string | null>(null)
   const [filterTag, setFilterTag] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
-
-  // Keep selection valid when students change (e.g. after import or delete)
-  useEffect(() => {
-    if (!data.students.some((s) => s.id === selectedId)) setSelectedId(data.students[0]?.id ?? null)
-  }, [data.students, selectedId])
 
   useEffect(() => {
     if (!toast) return
@@ -27,7 +22,9 @@ export default function App() {
     return () => clearTimeout(t)
   }, [toast])
 
-  const selected = data.students.find((s) => s.id === selectedId) ?? null
+  // Derive the selection so it stays valid after import or delete without an effect
+  const selected = data.students.find((s) => s.id === requestedId) ?? data.students[0] ?? null
+  const selectedId = selected?.id ?? null
   const studentErrors = useMemo(() => data.errors.filter((e) => e.studentId === selectedId), [data.errors, selectedId])
   const counts = useMemo(() => {
     const c: Record<string, number> = {}
