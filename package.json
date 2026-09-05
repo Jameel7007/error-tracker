@@ -9,6 +9,9 @@
     "url": "https://github.com/Jameel7007/error-tracker.git"
   },
   "license": "MIT",
+  "workspaces": [
+    "server"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,7 +20,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "test:server": "npm test --workspace server"
   },
   "dependencies": {
     "react": "^19.2.8",
