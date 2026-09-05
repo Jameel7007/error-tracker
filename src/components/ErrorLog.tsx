@@ -1,0 +1,110 @@
+import { useState } from 'react'
+import { groupByDate } from '../lib/insights'
+import type { ErrorEntry } from '../lib/types'
+
+interface Props {
+  errors: ErrorEntry[]
+  filterTag: string | null
+  onClearFilter: () => void
+  onUpdate: (id: string, patch: Partial<Pick<ErrorEntry, 'original' | 'correction' | 'tag' | 'date'>>) => void
+  onRemove: (id: string) => void
+}
+
+function formatDate(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+export function ErrorLog({ errors, filterTag, onClearFilter, onUpdate, onRemove }: Props) {
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const visible = filterTag ? errors.filter((e) => e.tag.trim().toLowerCase() === filterTag) : errors
+  const groups = groupByDate(visible)
+
+  return (
+    <section className="panel log" aria-label="Error log">
+      <div className="panel-head">
+        <h2>
+          Log <span className="chip">{visible.length}</span>
+        </h2>
+        {filterTag && (
+          <button type="button" className="btn small ghost" onClick={onClearFilter}>
+            Showing "{filterTag}" · clear
+          </button>
+        )}
+      </div>
+      {groups.length === 0 ? (
+        <div className="empty">
+          <strong>Nothing logged yet</strong>
+          Errors you save will appear here, grouped by lesson.
+        </div>
+      ) : (
+        groups.map((g) => (
+          <div key={g.date}>
+            <div className="log-date">{formatDate(g.date)}</div>
+            {g.entries.map((e) =>
+              editingId === e.id ? (
+                <EditRow key={e.id} entry={e} onCancel={() => setEditingId(null)} onSave={(patch) => { onUpdate(e.id, patch); setEditingId(null) }} />
+              ) : (
+                <div key={e.id} className="entry">
+                  <div>
+                    <div className="original">{e.original}</div>
+                    <div className="correction">{e.correction}</div>
+                    <div className="tagline">
+                      <span className="chip tag">{e.tag}</span>
+                    </div>
+                  </div>
+                  <div className="actions">
+                    <button type="button" className="btn small ghost" onClick={() => setEditingId(e.id)} aria-label={`Edit "${e.original}"`}>
+                      Edit
+                    </button>
+                    <button type="button" className="btn small ghost danger" onClick={() => onRemove(e.id)} aria-label={`Delete "${e.original}"`}>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ),
+            )}
+          </div>
+        ))
+      )}
+    </section>
+  )
+}
+
+function EditRow({ entry, onSave, onCancel }: { entry: ErrorEntry; onSave: (p: Partial<ErrorEntry>) => void; onCancel: () => void }) {
+  const [original, setOriginal] = useState(entry.original)
+  const [correction, setCorrection] = useState(entry.correction)
+  const [tag, setTag] = useState(entry.tag)
+  const [date, setDate] = useState(entry.date)
+  const valid = original.trim() && correction.trim() && tag.trim() && date
+  return (
+    <div className="entry editing">
+      <div className="form-grid">
+        <div className="field wide">
+          <label>What they said</label>
+          <textarea rows={1} value={original} onChange={(e) => setOriginal(e.target.value)} />
+        </div>
+        <div className="field wide">
+          <label>Correction</label>
+          <textarea rows={1} value={correction} onChange={(e) => setCorrection(e.target.value)} />
+        </div>
+        <div className="field">
+          <label>Tag</label>
+          <input type="text" value={tag} onChange={(e) => setTag(e.target.value)} />
+        </div>
+        <div className="field">
+          <label>Date</label>
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </div>
+      </div>
+      <div className="actions" style={{ opacity: 1, flexDirection: 'column' }}>
+        <button type="button" className="btn small primary" disabled={!valid} onClick={() => onSave({ original: original.trim(), correction: correction.trim(), tag: tag.trim(), date })}>
+          Save
+        </button>
+        <button type="button" className="btn small ghost" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+}
