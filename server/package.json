@@ -1,10 +1,12 @@
 {
   "name": "lesson-error-tracker-server",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "Sync server for Lesson Error Tracker: accounts, sessions, and per-account change log on SQLite",
-  "engines": { "node": ">=22.13" },
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "dev": "node --watch --no-warnings=ExperimentalWarning src/index.ts",
     "start": "node --no-warnings=ExperimentalWarning src/index.ts",
