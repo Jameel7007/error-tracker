@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { groupByDate, normaliseTag } from '../lib/insights'
 import { lessonSummary } from '../lib/summary'
 import type { ErrorEntry } from '../lib/types'
@@ -21,13 +21,21 @@ function formatDate(iso: string): string {
 
 export function ErrorLog({ errors, studentName, filterTag, onClearFilter, onNotify, onUpdate, onRemove }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
+  // When the clipboard is blocked (some browsers, embedded views), show the text instead so it can be copied by hand
+  const [fallback, setFallback] = useState<{ date: string; text: string } | null>(null)
   const visible = filterTag ? errors.filter((e) => normaliseTag(e.tag) === filterTag) : errors
   const groups = groupByDate(visible)
 
   // Summarise the whole lesson, not just the entries visible under the current tag filter
   const copySummary = async (date: string) => {
-    const ok = await copyText(lessonSummary({ studentName, date, errors }))
-    onNotify(ok ? 'Lesson summary copied' : 'Could not copy to the clipboard')
+    const text = lessonSummary({ studentName, date, errors })
+    if (await copyText(text)) {
+      setFallback(null)
+      onNotify('Lesson summary copied')
+    } else {
+      setFallback({ date, text })
+      onNotify('Clipboard blocked. The notes are shown below so you can copy them.')
+    }
   }
 
   return (
@@ -42,6 +50,7 @@ export function ErrorLog({ errors, studentName, filterTag, onClearFilter, onNoti
           </button>
         )}
       </div>
+      {fallback && <SummaryFallback key={fallback.date} title={formatDate(fallback.date)} text={fallback.text} onClose={() => setFallback(null)} />}
       {groups.length === 0 ? (
         <div className="empty">
           <strong>Nothing logged yet</strong>
@@ -89,6 +98,25 @@ export function ErrorLog({ errors, studentName, filterTag, onClearFilter, onNoti
         ))
       )}
     </section>
+  )
+}
+
+function SummaryFallback({ title, text, onClose }: { title: string; text: string; onClose: () => void }) {
+  const area = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => {
+    area.current?.focus()
+    area.current?.select()
+  }, [])
+  return (
+    <div className="summary-fallback" role="region" aria-label={`Lesson summary for ${title}`}>
+      <div className="summary-fallback-head">
+        <span className="hint">Your browser blocked the clipboard. The notes for {title} are selected below: press Ctrl/Cmd + C to copy.</span>
+        <button type="button" className="btn small ghost" onClick={onClose}>
+          Close
+        </button>
+      </div>
+      <textarea ref={area} readOnly rows={Math.min(12, text.split('\n').length + 1)} value={text} aria-label="Lesson summary text" />
+    </div>
   )
 }
 

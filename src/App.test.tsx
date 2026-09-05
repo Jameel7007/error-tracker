@@ -55,6 +55,26 @@ describe('App', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Lesson summary copied')
   })
 
+  it('shows the summary in a text box when the clipboard is blocked', async () => {
+    Object.assign(navigator, { clipboard: { writeText: vi.fn().mockRejectedValue(new Error('denied')) } })
+    render(<App />)
+    const log = screen.getByRole('region', { name: 'Error log' })
+    fireEvent.click(within(log).getAllByRole('button', { name: /^Copy lesson summary for/ })[0])
+    const box = (await screen.findByLabelText('Lesson summary text')) as HTMLTextAreaElement
+    expect(box.value).toMatch(/^Lesson notes for Luana/)
+    expect(screen.getByRole('status')).toHaveTextContent(/Clipboard blocked/)
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(screen.queryByLabelText('Lesson summary text')).not.toBeInTheDocument()
+  })
+
+  it('demo data shows every trend, so the legend is never abstract', () => {
+    render(<App />)
+    const insights = screen.getByRole('complementary', { name: 'Insights' })
+    expect(within(insights).getAllByText('Persistent').length).toBeGreaterThan(0)
+    expect(within(insights).getAllByText('Improving').length).toBeGreaterThan(0)
+    expect(within(insights).getAllByText('New').length).toBeGreaterThan(0)
+  })
+
   it('filters the log when a tag is picked in insights', () => {
     render(<App />)
     const insights = screen.getByRole('complementary', { name: 'Insights' })

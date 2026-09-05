@@ -446,6 +446,28 @@ label {
   background: var(--bg);
 }
 
+.summary-fallback {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-fallback-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.summary-fallback textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  background: var(--panel);
+}
+
 .tag {
   background: var(--accent-soft);
   color: var(--accent);
