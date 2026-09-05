@@ -1,14 +1,17 @@
 import { useEffect, useReducer } from 'react'
 import { reducer } from '../lib/reducer'
-import { loadData, saveData, STORAGE_KEY } from '../lib/storage'
+import { hasStoredData, loadData, saveData, STORAGE_KEY } from '../lib/storage'
 import type { AppData } from '../lib/types'
 
-/** App state backed by localStorage, synced across tabs. */
+/**
+ * App state backed by localStorage, synced across tabs.
+ * `initial` seeds the state only on a true first visit (nothing stored yet),
+ * so clearing all data and reloading does not bring the demo data back.
+ */
 export function useAppData(initial?: () => AppData) {
   const [data, dispatch] = useReducer(reducer, undefined, () => {
-    const stored = loadData()
-    if (stored.students.length === 0 && initial) return initial()
-    return stored
+    if (initial && !hasStoredData()) return initial()
+    return loadData()
   })
 
   useEffect(() => {

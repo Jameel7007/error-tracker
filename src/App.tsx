@@ -48,7 +48,7 @@ export default function App() {
     if (!file) return
     try {
       const imported = importJson(await file.text())
-      if (data.errors.length > 0 && !confirm(`Replace ${data.students.length} students and ${data.errors.length} errors with the imported file?`)) return
+      if ((data.students.length > 0 || data.errors.length > 0) && !confirm(`Replace ${data.students.length} students and ${data.errors.length} errors with the imported file?`)) return
       dispatch({ type: 'replaceAll', data: imported })
       setFilterTag(null)
       setToast(`Imported ${imported.students.length} students, ${imported.errors.length} errors`)

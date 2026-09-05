@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { reducer } from './reducer'
 import { seedData } from './seed'
-import { exportJson, importJson, InvalidDataError, loadData, parseData, saveData, STORAGE_KEY } from './storage'
+import { exportJson, hasStoredData, importJson, InvalidDataError, loadData, parseData, saveData, STORAGE_KEY } from './storage'
 import { emptyData } from './types'
 
 describe('parseData / importJson', () => {
@@ -47,6 +47,13 @@ describe('loadData / saveData', () => {
     const data = seedData()
     saveData(data)
     expect(loadData()).toEqual(data)
+  })
+
+  it('distinguishes "never saved" from "saved but empty"', () => {
+    expect(hasStoredData()).toBe(false)
+    saveData(emptyData())
+    expect(hasStoredData()).toBe(true)
+    expect(loadData()).toEqual(emptyData())
   })
 
   it('falls back to empty data on corrupt storage', () => {

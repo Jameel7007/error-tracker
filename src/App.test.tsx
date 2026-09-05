@@ -13,6 +13,13 @@ describe('App', () => {
     expect(within(insights).getByText('present perfect vs present simple')).toBeInTheDocument()
   })
 
+  it('stays empty after "Clear all" and a reload instead of reseeding demo data', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, students: [], errors: [] }))
+    render(<App />)
+    expect(screen.getByText('No students yet')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Load demo data' })).toBeInTheDocument()
+  })
+
   it('adds a student and logs an error, which persists to localStorage', () => {
     render(<App />)
     fireEvent.change(screen.getByLabelText('New student name'), { target: { value: 'Test Student' } })

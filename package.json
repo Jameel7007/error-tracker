@@ -2,6 +2,13 @@
   "name": "lesson-error-tracker",
   "private": true,
   "version": "0.0.0",
+  "description": "Local-first lesson error log for language tutors, with recurring-pattern insights",
+  "homepage": "https://jameel7007.github.io/error-tracker/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jameel7007/error-tracker.git"
+  },
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",

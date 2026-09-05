@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { groupByDate } from '../lib/insights'
+import { groupByDate, normaliseTag } from '../lib/insights'
 import type { ErrorEntry } from '../lib/types'
 
 interface Props {
@@ -17,7 +17,7 @@ function formatDate(iso: string): string {
 
 export function ErrorLog({ errors, filterTag, onClearFilter, onUpdate, onRemove }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
-  const visible = filterTag ? errors.filter((e) => e.tag.trim().toLowerCase() === filterTag) : errors
+  const visible = filterTag ? errors.filter((e) => normaliseTag(e.tag) === filterTag) : errors
   const groups = groupByDate(visible)
 
   return (
@@ -77,24 +77,25 @@ function EditRow({ entry, onSave, onCancel }: { entry: ErrorEntry; onSave: (p: P
   const [tag, setTag] = useState(entry.tag)
   const [date, setDate] = useState(entry.date)
   const valid = original.trim() && correction.trim() && tag.trim() && date
+  const id = (field: string) => `edit-${field}-${entry.id}`
   return (
     <div className="entry editing">
       <div className="form-grid">
         <div className="field wide">
-          <label>What they said</label>
-          <textarea rows={1} value={original} onChange={(e) => setOriginal(e.target.value)} />
+          <label htmlFor={id('original')}>What they said</label>
+          <textarea id={id('original')} rows={1} value={original} onChange={(e) => setOriginal(e.target.value)} />
         </div>
         <div className="field wide">
-          <label>Correction</label>
-          <textarea rows={1} value={correction} onChange={(e) => setCorrection(e.target.value)} />
+          <label htmlFor={id('correction')}>Correction</label>
+          <textarea id={id('correction')} rows={1} value={correction} onChange={(e) => setCorrection(e.target.value)} />
         </div>
         <div className="field">
-          <label>Tag</label>
-          <input type="text" value={tag} onChange={(e) => setTag(e.target.value)} />
+          <label htmlFor={id('tag')}>Tag</label>
+          <input id={id('tag')} type="text" value={tag} onChange={(e) => setTag(e.target.value)} />
         </div>
         <div className="field">
-          <label>Date</label>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <label htmlFor={id('date')}>Date</label>
+          <input id={id('date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
       </div>
       <div className="actions" style={{ opacity: 1, flexDirection: 'column' }}>

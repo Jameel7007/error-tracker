@@ -12,6 +12,15 @@ export function loadData(storage: Storage = localStorage): AppData {
   }
 }
 
+/** True once this browser has saved data before, even if that data is empty. */
+export function hasStoredData(storage: Storage = localStorage): boolean {
+  try {
+    return storage.getItem(STORAGE_KEY) !== null
+  } catch {
+    return false
+  }
+}
+
 export function saveData(data: AppData, storage: Storage = localStorage): void {
   try {
     storage.setItem(STORAGE_KEY, JSON.stringify(data))
