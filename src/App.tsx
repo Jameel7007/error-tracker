@@ -143,8 +143,10 @@ export default function App() {
               />
               <ErrorLog
                 errors={studentErrors}
+                studentName={selected.name}
                 filterTag={filterTag}
                 onClearFilter={() => setFilterTag(null)}
+                onNotify={setToast}
                 onUpdate={(id, patch) => dispatch({ type: 'updateError', id, patch })}
                 onRemove={(id) => dispatch({ type: 'removeError', id })}
               />

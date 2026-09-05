@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { groupByDate, normaliseTag } from '../lib/insights'
+import { lessonSummary } from '../lib/summary'
 import type { ErrorEntry } from '../lib/types'
 
 interface Props {
+  /** The student's full history; tag filtering happens inside */
   errors: ErrorEntry[]
+  studentName: string
   filterTag: string | null
+  onNotify: (message: string) => void
   onClearFilter: () => void
   onUpdate: (id: string, patch: Partial<Pick<ErrorEntry, 'original' | 'correction' | 'tag' | 'date'>>) => void
   onRemove: (id: string) => void
@@ -15,10 +19,16 @@ function formatDate(iso: string): string {
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export function ErrorLog({ errors, filterTag, onClearFilter, onUpdate, onRemove }: Props) {
+export function ErrorLog({ errors, studentName, filterTag, onClearFilter, onNotify, onUpdate, onRemove }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const visible = filterTag ? errors.filter((e) => normaliseTag(e.tag) === filterTag) : errors
   const groups = groupByDate(visible)
+
+  // Summarise the whole lesson, not just the entries visible under the current tag filter
+  const copySummary = async (date: string) => {
+    const ok = await copyText(lessonSummary({ studentName, date, errors }))
+    onNotify(ok ? 'Lesson summary copied' : 'Could not copy to the clipboard')
+  }
 
   return (
     <section className="panel log" aria-label="Error log">
@@ -40,7 +50,18 @@ export function ErrorLog({ errors, filterTag, onClearFilter, onUpdate, onRemove 
       ) : (
         groups.map((g) => (
           <div key={g.date}>
-            <div className="log-date">{formatDate(g.date)}</div>
+            <div className="log-date">
+              <span>{formatDate(g.date)}</span>
+              <button
+                type="button"
+                className="btn small ghost"
+                onClick={() => copySummary(g.date)}
+                aria-label={`Copy lesson summary for ${formatDate(g.date)}`}
+                title="Copy plain-text notes for this lesson to paste into homework"
+              >
+                Copy summary
+              </button>
+            </div>
             {g.entries.map((e) =>
               editingId === e.id ? (
                 <EditRow key={e.id} entry={e} onCancel={() => setEditingId(null)} onSave={(patch) => { onUpdate(e.id, patch); setEditingId(null) }} />
@@ -69,6 +90,32 @@ export function ErrorLog({ errors, filterTag, onClearFilter, onUpdate, onRemove 
       )}
     </section>
   )
+}
+
+/** Clipboard API first, with the legacy selection-based copy as a fallback for older or non-secure contexts. */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+      return true
+    }
+  } catch {
+    // fall through to the legacy path
+  }
+  try {
+    const area = document.createElement('textarea')
+    area.value = text
+    area.setAttribute('readonly', '')
+    area.style.position = 'fixed'
+    area.style.opacity = '0'
+    document.body.appendChild(area)
+    area.select()
+    const ok = document.execCommand('copy')
+    area.remove()
+    return ok
+  } catch {
+    return false
+  }
 }
 
 function EditRow({ entry, onSave, onCancel }: { entry: ErrorEntry; onSave: (p: Partial<ErrorEntry>) => void; onCancel: () => void }) {
