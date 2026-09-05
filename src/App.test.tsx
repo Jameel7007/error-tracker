@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { STORAGE_KEY } from './lib/storage'
 
@@ -35,6 +35,24 @@ describe('App', () => {
     expect(within(log).getByText('She goes home')).toBeInTheDocument()
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!)
     expect(stored.errors.some((e: { correction: string }) => e.correction === 'She goes home')).toBe(true)
+  })
+
+  it('copies a plain-text summary of one lesson to the clipboard', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.assign(navigator, { clipboard: { writeText } })
+    render(<App />)
+
+    const log = screen.getByRole('region', { name: 'Error log' })
+    const [newest] = within(log).getAllByRole('button', { name: /^Copy lesson summary for/ })
+    fireEvent.click(newest)
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1))
+    const text: string = writeText.mock.calls[0][0]
+    expect(text).toMatch(/^Lesson notes for Luana/)
+    expect(text).toContain('"I did not saw him." → "I did not see him."')
+    expect(text).toContain('Still coming up:')
+    expect(text).not.toContain('I have 25 years.') // belongs to an older lesson
+    expect(await screen.findByRole('status')).toHaveTextContent('Lesson summary copied')
   })
 
   it('filters the log when a tag is picked in insights', () => {
