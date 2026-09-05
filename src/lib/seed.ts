@@ -16,8 +16,11 @@ export function seedData(): AppData {
     { id: 's-sofia', name: 'Sofía', level: 'B2' as const, createdAt: ts(298), updatedAt: ts(298) },
   ]
   const raw: Array<[string, number, string, string, string]> = [
-    // Luana (Portuguese L1): article and present perfect issues, articles improving
-    ['s-luana', 21, 'I have 25 years.', 'I am 25 years old.', 'age with have'],
+    // Luana (Portuguese L1): present perfect still recurring; past simple vs present perfect has faded (improving)
+    ['s-luana', 35, 'I have visited Lisbon last year.', 'I visited Lisbon last year.', 'past simple vs present perfect'],
+    ['s-luana', 35, 'I have 25 years.', 'I am 25 years old.', 'age with have'],
+    ['s-luana', 28, 'She has called me yesterday.', 'She called me yesterday.', 'past simple vs present perfect'],
+    ['s-luana', 21, 'My mother is a very good cooker.', 'My mother is a very good cook.', 'false friend: cooker'],
     ['s-luana', 21, 'She is in the hospital since Monday.', 'She has been in hospital since Monday.', 'present perfect vs present simple'],
     ['s-luana', 21, 'I like very much the music.', 'I like the music very much.', 'adverb position'],
     ['s-luana', 14, 'I went to the university yesterday.', 'I went to university yesterday.', 'articles with institutions'],
