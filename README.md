@@ -9,7 +9,7 @@ A small, local-first app for language tutors. During a lesson you log what the s
 **How it all works, in plain language:** [docs/architecture.md](docs/architecture.md)
 **How I made sure I understand it:** [docs/study-guide.md](docs/study-guide.md). I built this with an AI assistant as a pair programmer; the study guide is the vocabulary, the decisions with their alternatives, and the questions the project invites, written so I can defend every part of it.
 
-![Screenshot of Lesson Error Tracker showing a student's error log and ranked error patterns](docs/screenshot.png)
+![Screenshot of Lesson Error Tracker: a student's error log grouped by lesson with a Copy summary action on each, ranked error patterns marked persistent, improving, or new, and a Sign in to sync button](docs/screenshot.png)
 
 ## Why
 
