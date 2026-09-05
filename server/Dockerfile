@@ -14,6 +14,9 @@ COPY src/lib/types.ts src/lib/sync.ts ./src/lib/
 
 ENV PORT=8787
 ENV DATABASE_PATH=/data/error-tracker.sqlite
+# The process runs as the unprivileged node user, so the data directory must be writable by it.
+# A named volume inherits this ownership on first mount; for a bind mount, chown the host directory to uid 1000.
+RUN mkdir -p /data && chown node:node /data
 VOLUME ["/data"]
 EXPOSE 8787
 
