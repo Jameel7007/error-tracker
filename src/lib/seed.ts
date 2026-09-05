@@ -11,9 +11,9 @@ function daysAgo(n: number): string {
 export function seedData(): AppData {
   const ts = (i: number) => new Date(Date.now() - i * 60_000).toISOString()
   const students = [
-    { id: 's-luana', name: 'Luana', level: 'B1' as const, createdAt: ts(300) },
-    { id: 's-emre', name: 'Emre', level: 'A2' as const, createdAt: ts(299) },
-    { id: 's-sofia', name: 'Sofía', level: 'B2' as const, createdAt: ts(298) },
+    { id: 's-luana', name: 'Luana', level: 'B1' as const, createdAt: ts(300), updatedAt: ts(300) },
+    { id: 's-emre', name: 'Emre', level: 'A2' as const, createdAt: ts(299), updatedAt: ts(299) },
+    { id: 's-sofia', name: 'Sofía', level: 'B2' as const, createdAt: ts(298), updatedAt: ts(298) },
   ]
   const raw: Array<[string, number, string, string, string]> = [
     // Luana (Portuguese L1): article and present perfect issues, articles improving
@@ -48,6 +48,7 @@ export function seedData(): AppData {
     tag,
     date: daysAgo(ago),
     createdAt: ts(200 - i),
+    updatedAt: ts(200 - i),
   }))
-  return { version: 1, students, errors }
+  return { version: 2, students, errors, tombstones: [] }
 }

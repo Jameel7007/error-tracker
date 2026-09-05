@@ -11,6 +11,7 @@ const err = (date: string, original: string, correction: string, tag: string): E
   tag,
   date,
   createdAt: new Date(2026, 0, 1, 0, n).toISOString(),
+  updatedAt: new Date(2026, 0, 1, 0, n).toISOString(),
 })
 
 describe('lessonSummary', () => {

@@ -14,7 +14,7 @@ describe('App', () => {
   })
 
   it('stays empty after "Clear all" and a reload instead of reseeding demo data', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, students: [], errors: [] }))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 2, students: [], errors: [], tombstones: [] }))
     render(<App />)
     expect(screen.getByText('No students yet')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Load demo data' })).toBeInTheDocument()

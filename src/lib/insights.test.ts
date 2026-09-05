@@ -11,6 +11,7 @@ const err = (studentId: string, tag: string, date: string): ErrorEntry => ({
   tag,
   date,
   createdAt: new Date(2026, 0, 1, 0, n).toISOString(),
+  updatedAt: new Date(2026, 0, 1, 0, n).toISOString(),
 })
 
 describe('normaliseTag', () => {

@@ -15,7 +15,29 @@ describe('parseData / importJson', () => {
   })
 
   it('rejects unknown versions', () => {
-    expect(() => parseData({ version: 2, students: [], errors: [] })).toThrow(/version/)
+    expect(() => parseData({ version: 3, students: [], errors: [], tombstones: [] })).toThrow(/version/)
+  })
+
+  it('migrates a v1 export: updatedAt is filled from createdAt and tombstones start empty', () => {
+    const v1 = {
+      version: 1,
+      students: [{ id: 's', name: 'Ana', level: 'A2', createdAt: '2026-01-01T10:00:00.000Z' }],
+      errors: [{ id: 'e', studentId: 's', original: 'a', correction: 'b', tag: 't', date: '2026-01-01', createdAt: '2026-01-01T10:05:00.000Z' }],
+    }
+    const data = parseData(v1)
+    expect(data.version).toBe(2)
+    expect(data.students[0].updatedAt).toBe('2026-01-01T10:00:00.000Z')
+    expect(data.errors[0].updatedAt).toBe('2026-01-01T10:05:00.000Z')
+    expect(data.tombstones).toEqual([])
+  })
+
+  it('requires updatedAt and tombstones on v2 data', () => {
+    const { tombstones: _t, ...noTombstones } = seedData()
+    expect(() => parseData(noTombstones)).toThrow(/tombstones/)
+    const s = seedData()
+    const { updatedAt: _u, ...staleStudent } = s.students[0]
+    expect(() => parseData({ ...s, students: [staleStudent, ...s.students.slice(1)] })).toThrow(/student/)
+    expect(() => parseData({ ...s, tombstones: [{ id: 'x', kind: 'thing', deletedAt: 'now' }] })).toThrow(/tombstone/)
   })
 
   it('rejects malformed students and errors', () => {
@@ -87,20 +109,32 @@ describe('reducer', () => {
     expect(s.errors).toHaveLength(0)
   })
 
-  it('removing a student cascades to their errors', () => {
+  it('removing a student cascades to their errors and leaves a tombstone for each', () => {
     const before = seedData()
+    const luanaErrors = before.errors.filter((e) => e.studentId === 's-luana').map((e) => e.id)
     const after = reducer(before, { type: 'removeStudent', id: 's-luana' })
     expect(after.students.some((x) => x.id === 's-luana')).toBe(false)
     expect(after.errors.some((e) => e.studentId === 's-luana')).toBe(false)
-    expect(after.errors.length).toBeLessThan(before.errors.length)
+    expect(after.tombstones.map((t) => t.id)).toEqual(['s-luana', ...luanaErrors])
+    expect(after.tombstones[0].kind).toBe('student')
+    expect(after.tombstones[1].kind).toBe('error')
   })
 
-  it('updates and removes errors', () => {
+  it('updates bump updatedAt; removals leave a tombstone', () => {
     const s = seedData()
     const id = s.errors[0].id
     const updated = reducer(s, { type: 'updateError', id, patch: { tag: 'renamed' } })
     expect(updated.errors[0].tag).toBe('renamed')
+    expect(updated.errors[0].updatedAt > s.errors[0].updatedAt).toBe(true)
+    expect(updated.errors[0].createdAt).toBe(s.errors[0].createdAt)
     const removed = reducer(updated, { type: 'removeError', id })
     expect(removed.errors.some((e) => e.id === id)).toBe(false)
+    expect(removed.tombstones).toEqual([expect.objectContaining({ id, kind: 'error' })])
+  })
+
+  it('removing something that does not exist is a no-op, not a tombstone', () => {
+    const s = seedData()
+    expect(reducer(s, { type: 'removeError', id: 'ghost' })).toBe(s)
+    expect(reducer(s, { type: 'removeStudent', id: 'ghost' })).toBe(s)
   })
 })
