@@ -3,7 +3,9 @@ import { ErrorForm } from './components/ErrorForm'
 import { ErrorLog } from './components/ErrorLog'
 import { Insights } from './components/Insights'
 import { StudentList } from './components/StudentList'
+import { SyncPanel } from './components/SyncPanel'
 import { useAppData } from './hooks/useAppData'
+import { useSync } from './hooks/useSync'
 import { normaliseTag, suggestTags } from './lib/insights'
 import { seedData } from './lib/seed'
 import { exportJson, importJson, InvalidDataError } from './lib/storage'
@@ -11,6 +13,7 @@ import { emptyData, LEVELS, type Level } from './lib/types'
 
 export default function App() {
   const [data, dispatch] = useAppData(seedData)
+  const sync = useSync(data, dispatch)
   const [requestedId, setSelectedId] = useState<string | null>(null)
   const [filterTag, setFilterTag] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -79,6 +82,7 @@ export default function App() {
           <span>for language tutors</span>
         </div>
         <div className="topbar-actions">
+          <SyncPanel sync={sync} localCounts={{ students: data.students.length, errors: data.errors.length }} onNotify={setToast} />
           <button type="button" className="btn" onClick={download}>
             Export JSON
           </button>
@@ -168,7 +172,9 @@ export default function App() {
           />
         )}
       </main>
-      <footer className="footer">Data stays in your browser. Export JSON to back it up or move it.</footer>
+      <footer className="footer">
+        {sync.email ? `Saved in this browser and synced to ${sync.email}.` : 'Data stays in your browser. Export JSON to back it up or move it.'}
+      </footer>
       {toast && (
         <div className="toast" role="status">
           {toast}

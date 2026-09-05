@@ -580,6 +580,94 @@ label {
   white-space: nowrap;
 }
 
+/* Sync */
+.sync {
+  position: relative;
+}
+
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: none;
+}
+
+.sync-toggle.idle .sync-dot {
+  background: var(--ok);
+}
+
+.sync-toggle.syncing .sync-dot {
+  background: var(--new);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.sync-toggle.offline .sync-dot {
+  background: var(--warn);
+}
+
+.sync-toggle.error .sync-dot {
+  background: var(--accent);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.sync-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(340px, calc(100vw - 28px));
+  padding: 14px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (max-width: 680px) {
+  .sync-panel {
+    right: auto;
+    left: 0;
+  }
+}
+
+.sync-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sync-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sync-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+input[type='email'],
+input[type='password'] {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.form-error {
+  margin: 0;
+  color: var(--accent);
+  font-size: 13px;
+}
+
 .footer {
   text-align: center;
   color: var(--muted);
