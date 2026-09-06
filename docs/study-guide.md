@@ -191,7 +191,7 @@ Each one with the alternative and the trade.
   push's response is exactly what a pull would return. The client's own
   changes echo back, which the merge tolerates by design.
 - **Hand-written validation instead of a library.** The shape is small, the
-  bundle stays at 65 kB, and error messages can say exactly what a tutor would
+  bundle stays under 70 kB gzipped, and error messages can say exactly what a tutor would
   understand. More code to maintain if the schema grows.
 - **Pending changes derived from data, not queued.** "Everything changed after
   my last push" needs no separate queue that could get out of step or be lost.

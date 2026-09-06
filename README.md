@@ -44,7 +44,7 @@ The sync server (`server/`) is Hono on Node with Node's built-in SQLite, in an n
 
 **Sync is last-write-wins per record, with tombstones.** Every record carries `updatedAt`, deletions leave a tombstone, and the newer timestamp wins on both the client and the server. One `POST /sync` pushes and pulls in a single round trip using a per-account sequence cursor. The merge is a pure function with tests for both conflict directions, idempotency, and convergence regardless of arrival order. The known limit is client clocks: a device with a fast clock wins for as long as it is fast. For one tutor with two devices that is the right trade against the complexity of vector clocks. [docs/architecture.md](docs/architecture.md) walks through it with examples.
 
-**Import validates against a schema by hand** rather than pulling in a validation library. The data shape is small, and a hand-written guard keeps the bundle at ~65 kB gzipped and gives clear error messages ("Error refers to unknown student").
+**Import validates against a schema by hand** rather than pulling in a validation library. The data shape is small, and a hand-written guard keeps the bundle under 70 kB gzipped and gives clear error messages ("Error refers to unknown student").
 
 **Tags are free text, normalised for grouping.** Forcing a fixed taxonomy up front would have made the app slower to use in a lesson. Normalising case and whitespace catches most of the drift; the autocomplete does the rest.
 
